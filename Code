@@ -1,0 +1,110 @@
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import random
+import os
+
+
+all_questions = [
+    {"question": "What is the capital of India?", "options": ["Delhi", "Mumbai", "Kolkata", "Chennai"], "answer": "Delhi"},
+    {"question": "Which gas do plants absorb?", "options": ["Oxygen", "Carbon Dioxide", "Nitrogen", "Hydrogen"], "answer": "Carbon Dioxide"},
+    {"question": "Who painted the Mona Lisa?", "options": ["Vincent Van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Michelangelo"], "answer": "Leonardo da Vinci"},
+    {"question": "Largest planet in our solar system?", "options": ["Earth", "Jupiter", "Saturn", "Mars"], "answer": "Jupiter"},
+    {"question": "H2O is the chemical formula for?", "options": ["Oxygen", "Hydrogen", "Water", "Salt"], "answer": "Water"},
+    {"question": "Who invented the telephone?", "options": ["Edison", "Newton", "Bell", "Tesla"], "answer": "Bell"},
+    {"question": "How many continents are there?", "options": ["5", "6", "7", "8"], "answer": "7"},
+    {"question": "National animal of India?", "options": ["Tiger", "Elephant", "Lion", "Peacock"], "answer": "Tiger"},
+    {"question": "Fastest land animal?", "options": ["Cheetah", "Lion", "Tiger", "Horse"], "answer": "Cheetah"},
+    {"question": "Who wrote the Ramayana?", "options": ["Valmiki", "Tulsidas", "Ved Vyas", "Kalidas"], "answer": "Valmiki"},
+    {"question": "Which is the smallest ocean?", "options": ["Indian", "Pacific", "Atlantic", "Arctic"], "answer": "Arctic"},
+    {"question": "What is the boiling point of water?", "options": ["100°C", "90°C", "120°C", "80°C"], "answer": "100°C"},
+    {"question": "Taj Mahal is in?", "options": ["Agra", "Delhi", "Jaipur", "Mumbai"], "answer": "Agra"},
+    {"question": "First Prime Minister of India?", "options": ["Gandhi", "Modi", "Nehru", "Patel"], "answer": "Nehru"},
+    {"question": "Which is a programming language?", "options": ["HTML", "Java", "CSS", "Photoshop"], "answer": "Java"},
+    {"question": "What is the currency of Japan?", "options": ["Dollar", "Yen", "Won", "Euro"], "answer": "Yen"},
+    {"question": "Which organ purifies blood?", "options": ["Heart", "Lungs", "Kidney", "Liver"], "answer": "Kidney"},
+    {"question": "Light travels in?", "options": ["Circles", "Straight lines", "Zigzag", "Squares"], "answer": "Straight lines"},
+    {"question": "Who discovered gravity?", "options": ["Einstein", "Tesla", "Newton", "Galileo"], "answer": "Newton"},
+    {"question": "Which festival is known as the Festival of Lights?", "options": ["Holi", "Eid", "Diwali", "Christmas"], "answer": "Diwali"},
+]
+
+
+questions = []
+question_index = 0
+score = 0
+user_name = ""
+
+
+root = tk.Tk()
+root.title("Quiz Game")
+root.geometry("500x450")
+root.resizable(False, False)
+root.config(bg="#f9f9f9")
+
+question_label = tk.Label(root, text="", font=("Arial", 16), wraplength=480, bg="#f9f9f9")
+question_label.pack(pady=30)
+
+selected_option = tk.StringVar()
+options = []
+
+for i in range(4):
+    btn = tk.Radiobutton(root, text="", variable=selected_option, font=("Arial", 12), value="", bg="#f9f9f9")
+    btn.pack(anchor="w", padx=50, pady=5)
+    options.append(btn)
+
+def load_question():
+    global question_index
+    selected_option.set(None)
+    q = questions[question_index]
+    question_label.config(text=f"Q{question_index + 1}. {q['question']}")
+    for i, opt in enumerate(q["options"]):
+        options[i].config(text=opt, value=opt)
+
+def save_leaderboard():
+    with open("leaderboard.txt", "a") as f:
+        f.write(f"{user_name} - {score}/5\n")
+
+def show_leaderboard():
+    if os.path.exists("leaderboard.txt"):
+        with open("leaderboard.txt", "r") as f:
+            lines = f.readlines()
+        sorted_scores = sorted(lines, key=lambda x: int(x.strip().split("-")[1].split("/")[0]), reverse=True)
+        leaderboard = "🏆 Leaderboard:\n" + "".join(sorted_scores[:5])
+        messagebox.showinfo("Leaderboard", leaderboard)
+    else:
+        messagebox.showinfo("Leaderboard", "No leaderboard data found.")
+
+def next_question():
+    global question_index, score
+    if selected_option.get() == "":
+        messagebox.showwarning("No Selection", "Please select an option.")
+        return
+
+    if selected_option.get() == questions[question_index]["answer"]:
+        score += 1
+
+    question_index += 1
+    if question_index < len(questions):
+        load_question()
+    else:
+        save_leaderboard()
+        messagebox.showinfo("Quiz Completed", f"{user_name}, your score: {score}/5")
+        show_leaderboard()
+
+def restart_quiz():
+    global question_index, score, questions, user_name
+    question_index = 0
+    score = 0
+    questions = random.sample(all_questions, 5)
+    user_name = simpledialog.askstring("Welcome!", "Enter your first name:")
+    if not user_name:
+        user_name = "Anonymous"
+    load_question()
+
+next_btn = tk.Button(root, text="Next", font=("Arial", 14), bg="#4CAF50", fg="white", command=next_question)
+next_btn.pack(pady=10)
+
+restart_btn = tk.Button(root, text="Restart Quiz", font=("Arial", 12), bg="orange", fg="white", command=restart_quiz)
+restart_btn.pack(pady=5)
+
+restart_quiz()
+root.mainloop()
